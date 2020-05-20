@@ -23,6 +23,6 @@ public class HelloControllerTest {
         mvc.perform(MockMvcRequestBuilders.get("/")
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().string(equalTo("Hello! Welcome to Birthday Greetings Service")));
+                .andExpect(content().string(equalTo("Hello! Welcome to Birthday Greetings Service!")));
     }
 }
