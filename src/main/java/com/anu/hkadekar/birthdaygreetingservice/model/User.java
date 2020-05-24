@@ -1,9 +1,13 @@
 package com.anu.hkadekar.birthdaygreetingservice.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.apache.commons.lang3.StringUtils;
+
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.UUID;
 
+@JsonDeserialize(builder = User.Builder.class)
 public class User {
     private String firstName;
     private String lastName;
@@ -69,6 +73,53 @@ public class User {
         this.birthDate = birthDate;
     }
 
+    public boolean equals(Object obj){
+        if(this == obj) {
+            return true;
+        }
+
+        if(obj == null || obj.getClass() != this.getClass()) {
+            return false;
+        }
+
+        User user = (User) obj;
+
+        if(!StringUtils.equals(user.firstName, this.firstName)){
+            return false;
+        }
+
+        if(!StringUtils.equals(user.lastName, this.lastName)){
+            return false;
+        }
+
+        if(!StringUtils.equals(user.email, this.email)){
+            return false;
+        }
+
+        if(!StringUtils.equals(user.phoneNumber, this.phoneNumber)){
+            return false;
+        }
+
+        if(this.userId == null && user.userId != null) {
+            return false;
+        }
+
+        if((this.userId != null && !this.userId.equals(user.userId))) {
+            return false;
+        }
+
+        if(this.birthDate == null && user.birthDate != null) {
+            return false;
+        }
+
+        if(this.birthDate != null && user.birthDate != null && !StringUtils.equals(this.birthDate.toString(), user.birthDate.toString())) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @JsonPOJOBuilder(buildMethodName = "build", withPrefix = "with")
     public static class Builder{
         private String firstName;
         private String lastName;
@@ -82,7 +133,7 @@ public class User {
             return this;
         }
 
-        public Builder withLastname(String lastName) {
+        public Builder withLastName(String lastName) {
             this.lastName = lastName;
             return this;
         }
