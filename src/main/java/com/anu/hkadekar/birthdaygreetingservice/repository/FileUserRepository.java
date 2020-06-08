@@ -13,7 +13,12 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.StampedLock;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class FileUserRepository {
+
+    private Logger log = LoggerFactory.getLogger(FileUserRepository.class);
 
     private static String userDataFilePath = "FileDB/UserDBFile.json";
     private CopyOnWriteArrayList<User> users = null;
@@ -45,7 +50,7 @@ public class FileUserRepository {
             users.clear();
             users.addAll(userList);
         } catch (Exception exp) {
-            System.out.println(exp.getMessage());
+            log.error("Error while reading from User Data Source File", exp);
         } finally {
             fileLock.unlockRead(fileStamp);
         }
@@ -68,7 +73,7 @@ public class FileUserRepository {
             List<User> userList = getArrayListOfUsers();
             objectMapper.writeValue(Paths.get(absolutePath).toFile(), userList);
         }catch (Exception exp) {
-            System.out.println(exp.getMessage());
+            log.error("Error while writing into User Data Source File", exp);
         } finally {
             fileLock.unlockWrite(fileStamp);
         }
