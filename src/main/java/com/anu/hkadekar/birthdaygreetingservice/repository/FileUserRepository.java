@@ -107,16 +107,8 @@ public class FileUserRepository implements UserRepository {
 
     @Override
     public void addUsers(List<User> userList) {
-        lock.lock();
-        try {
-            users.addAllAbsent(userList);
-            flushData();
-        } catch (Exception exp) {
-            log.error("Error while adding users", exp);
-        } finally {
-            lock.unlock();
-        }
-
+        users.addAllAbsent(userList);
+        flushData();
     }
 
     @Override

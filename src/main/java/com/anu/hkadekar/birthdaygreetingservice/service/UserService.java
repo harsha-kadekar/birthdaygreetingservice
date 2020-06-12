@@ -16,16 +16,19 @@ public class UserService {
         userRepository = FileUserRepository.getInstance();
     }
 
-    public void addUser(User user) {
+    public void addUser(User user) throws ResourceAlreadyExistException {
         User existingUser = findUserByEmail(user.getEmail());
-        if(existingUser != null) {
-            user.setUserId(existingUser.getUserId());
-            userRepository.updateUsers(Arrays.asList(user));
+        if (existingUser != null) {
+            throw new ResourceAlreadyExistException(String.format("User with email %s already exists", user.getEmail()));
         } else {
             user.setUserId(UUID.randomUUID());
             userRepository.addUsers(Arrays.asList(user));
         }
+    }
 
+    public User findUserByEmail(String email){
+        List<User> users = userRepository.getUsersByEmail(Arrays.asList(email));
+        return users.size() > 0 ? users.get(0) : null;
     }
 
     public void removeUser(User user) {
@@ -34,11 +37,6 @@ public class UserService {
 
     public User findUserById(UUID uuid){
         return null;
-    }
-
-    public User findUserByEmail(String email){
-        List<User> users = userRepository.getUsersByEmail(Arrays.asList(email));
-        return users.size() > 0 ? users.get(0) : null;
     }
 
     public List<User> getAllUsers() {
