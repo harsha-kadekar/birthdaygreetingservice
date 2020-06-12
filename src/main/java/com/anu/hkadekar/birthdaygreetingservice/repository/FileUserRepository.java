@@ -10,13 +10,16 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.StampedLock;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FileUserRepository {
+public class FileUserRepository implements UserRepository {
 
     private Logger log = LoggerFactory.getLogger(FileUserRepository.class);
 
@@ -25,10 +28,12 @@ public class FileUserRepository {
     private ObjectMapper objectMapper = null;
     private static FileUserRepository instance = null;
     StampedLock fileLock = null;
+    ReentrantLock lock = null;
 
     private FileUserRepository(){
         users = new CopyOnWriteArrayList<>();
         fileLock = new StampedLock();
+        lock = new ReentrantLock();
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
@@ -79,14 +84,49 @@ public class FileUserRepository {
         }
     }
 
+    private void flushData(){
+        writeDataToFile();
+        readDataFromFile();
+
+    }
+
+    @Override
     public List<User> getAllUsers(){
         return getArrayListOfUsers();
     }
 
+    @Override
+    public List<User> getUsersByEmail(List<String> emails) {
+        return users.stream().filter(item -> emails.contains(item.getEmail())).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<User> getUsersById(List<UUID> uuids) {
+        return users.stream().filter(item -> uuids.contains(item.getUserId())).collect(Collectors.toList());
+    }
+
+    @Override
     public void addUsers(List<User> userList) {
-        users.addAllAbsent(userList);
-        writeDataToFile();
-        readDataFromFile();
+        lock.lock();
+        try {
+            users.addAllAbsent(userList);
+            flushData();
+        } catch (Exception exp) {
+            log.error("Error while adding users", exp);
+        } finally {
+            lock.unlock();
+        }
+
+    }
+
+    @Override
+    public void removeUsers(List<User> users) {
+
+    }
+
+    @Override
+    public void updateUsers(List<User> users) {
+
     }
 
 
