@@ -32,15 +32,20 @@ public class UserService {
     }
 
     public void removeUser(User user) {
-
+        userRepository.removeUsers(Arrays.asList(user));
     }
 
     public User findUserById(UUID uuid){
-        return null;
+        List<User> users = userRepository.getUsersById(Arrays.asList(uuid));
+        return users.size() > 0 ? users.get(0) : null;
     }
 
     public List<User> getAllUsers() {
-        return null;
+        return userRepository.getAllUsers();
+    }
+
+    public void updateUser(User user) {
+
     }
 
 }
