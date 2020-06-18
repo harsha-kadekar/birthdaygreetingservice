@@ -112,8 +112,9 @@ public class FileUserRepository implements UserRepository {
     }
 
     @Override
-    public void removeUsers(List<User> users) {
-
+    public void removeUsers(List<User> userList) {
+        users.removeAll(userList);
+        flushData();
     }
 
     @Override
