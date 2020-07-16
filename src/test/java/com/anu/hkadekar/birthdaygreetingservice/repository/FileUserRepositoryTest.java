@@ -52,15 +52,7 @@ public class FileUserRepositoryTest {
         objectMapper.writeValue(Paths.get(absolutePath).toFile(), Arrays.asList(user));
     }
 
-    @AfterEach
-    public void testDestroyer() throws Exception{
-        File dbFile = new File(absolutePath);
-        dbFile.delete();
-        List<User> emptyList = new ArrayList<>();
-        objectMapper.writeValue(Paths.get(absolutePath).toFile(), Arrays.asList(emptyList));
-    }
-
-    @AfterEach
+    @BeforeEach
     public void resetSingleton() throws Exception{
         Field instance = FileUserRepository.class.getDeclaredField("instance");
         instance.setAccessible(true);

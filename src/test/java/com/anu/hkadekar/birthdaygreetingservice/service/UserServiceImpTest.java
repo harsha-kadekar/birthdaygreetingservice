@@ -6,12 +6,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.*;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.File;
 import java.lang.reflect.Field;
 import java.nio.file.Paths;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -20,10 +20,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
 
-public class UserServiceTest {
+@SpringBootTest
+public class UserServiceImpTest {
     private static ObjectMapper objectMapper = null;
     private static final String userDataFilePath = "FileDB/UserDBFile.json";
-    private static final String absolutePath = UserServiceTest.class.getClassLoader().getResource(userDataFilePath).getPath();
+    private static final String absolutePath = UserServiceImpTest.class.getClassLoader().getResource(userDataFilePath).getPath();
 
     @BeforeAll
     static void initialize() {
@@ -50,15 +51,7 @@ public class UserServiceTest {
         objectMapper.writeValue(Paths.get(absolutePath).toFile(), Arrays.asList(user));
     }
 
-    @AfterEach
-    public void testDestroyer() throws Exception{
-        File dbFile = new File(absolutePath);
-        dbFile.delete();
-        List<User> emptyList = new ArrayList<>();
-        objectMapper.writeValue(Paths.get(absolutePath).toFile(), Arrays.asList(emptyList));
-    }
-
-    @AfterEach
+    @BeforeEach
     public void resetSingleton() throws Exception{
         Field instance = FileUserRepository.class.getDeclaredField("instance");
         instance.setAccessible(true);
@@ -76,12 +69,12 @@ public class UserServiceTest {
                 withBirthDate(LocalDate.of(1992, 2, 26)).
                 build();
 
-        UserService userService = new UserService();
-        List<User> users = userService.getAllUsers();
+        UserServiceImp userServiceImp = new UserServiceImp();
+        List<User> users = userServiceImp.getAllUsers();
         Assertions.assertEquals(1, users.size());
         assertThat(users, not(hasItem(anuUser)));
-        userService.addUser(anuUser);
-        users = userService.getAllUsers();
+        userServiceImp.addUser(anuUser);
+        users = userServiceImp.getAllUsers();
         Assertions.assertEquals(2, users.size());
         assertThat(users, hasItem(anuUser));
     }
@@ -97,12 +90,12 @@ public class UserServiceTest {
                 withBirthDate(LocalDate.of(1988, 9, 7)).
                 build();
 
-        UserService userService = new UserService();
-        List<User> users = userService.getAllUsers();
+        UserServiceImp userServiceImp = new UserServiceImp();
+        List<User> users = userServiceImp.getAllUsers();
         assertThat(users, hasItem(user));
 
         Exception exception = Assertions.assertThrows(ResourceAlreadyExistException.class, () -> {
-            userService.addUser(user);
+            userServiceImp.addUser(user);
         });
 
         String expectedMessage = String.format("User with email %s already exists", user.getEmail());
@@ -121,15 +114,15 @@ public class UserServiceTest {
                 withBirthDate(LocalDate.of(1988, 9, 7)).
                 build();
 
-        UserService userService = new UserService();
-        User searchedUser = userService.findUserByEmail(user.getEmail());
+        UserServiceImp userServiceImp = new UserServiceImp();
+        User searchedUser = userServiceImp.findUserByEmail(user.getEmail());
         Assertions.assertEquals(user, searchedUser);
     }
 
     @Test
     public void testFindUserByEmailNotExists() {
-        UserService userService = new UserService();
-        User searchedUser = userService.findUserByEmail("xyz@xyz.com");
+        UserServiceImp userServiceImp = new UserServiceImp();
+        User searchedUser = userServiceImp.findUserByEmail("xyz@xyz.com");
         Assertions.assertNull(searchedUser);
     }
 
@@ -144,15 +137,15 @@ public class UserServiceTest {
                 withBirthDate(LocalDate.of(1988, 9, 7)).
                 build();
 
-        UserService userService = new UserService();
-        User searchedUser = userService.findUserById(user.getUserId());
+        UserServiceImp userServiceImp = new UserServiceImp();
+        User searchedUser = userServiceImp.findUserById(user.getUserId());
         Assertions.assertEquals(user, searchedUser);
     }
 
     @Test
     public void testFindUserByIdNotExists() {
-        UserService userService = new UserService();
-        User searchedUser = userService.findUserById(UUID.fromString("f21191e6-a55b-11ea-bb37-0242ac130002"));
+        UserServiceImp userServiceImp = new UserServiceImp();
+        User searchedUser = userServiceImp.findUserById(UUID.fromString("f21191e6-a55b-11ea-bb37-0242ac130002"));
         Assertions.assertNull(searchedUser);
 
     }
@@ -168,13 +161,13 @@ public class UserServiceTest {
                 withBirthDate(LocalDate.of(1988, 9, 7)).
                 build();
 
-        UserService userService = new UserService();
-        List<User> users = userService.getAllUsers();
+        UserServiceImp userServiceImp = new UserServiceImp();
+        List<User> users = userServiceImp.getAllUsers();
         assertThat(users, hasItem(user));
         Assertions.assertEquals(1, users.size());
 
-        userService.removeUser(user);
-        users = userService.getAllUsers();
+        userServiceImp.removeUser(user);
+        users = userServiceImp.getAllUsers();
         assertThat(users, not(hasItem(user)));
         Assertions.assertEquals(0, users.size());
 
@@ -191,13 +184,13 @@ public class UserServiceTest {
                 withBirthDate(LocalDate.of(1992, 2, 26)).
                 build();
 
-        UserService userService = new UserService();
-        List<User> users = userService.getAllUsers();
+        UserServiceImp userServiceImp = new UserServiceImp();
+        List<User> users = userServiceImp.getAllUsers();
         assertThat(users, not(hasItem(anuUser)));
         Assertions.assertEquals(1, users.size());
 
-        userService.removeUser(anuUser);
-        users = userService.getAllUsers();
+        userServiceImp.removeUser(anuUser);
+        users = userServiceImp.getAllUsers();
         assertThat(users, not(hasItem(anuUser)));
         Assertions.assertEquals(1, users.size());
 
@@ -214,8 +207,8 @@ public class UserServiceTest {
                 withBirthDate(LocalDate.of(1988, 9, 7)).
                 build();
 
-        UserService userService = new UserService();
-        List<User> users = userService.getAllUsers();
+        UserServiceImp userServiceImp = new UserServiceImp();
+        List<User> users = userServiceImp.getAllUsers();
         assertThat(users, hasItem(user));
         Assertions.assertEquals(1, users.size());
 
