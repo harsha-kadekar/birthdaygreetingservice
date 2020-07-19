@@ -3,6 +3,8 @@ package com.anu.hkadekar.birthdaygreetingservice.service;
 import com.anu.hkadekar.birthdaygreetingservice.model.User;
 import com.anu.hkadekar.birthdaygreetingservice.repository.FileUserRepository;
 import com.anu.hkadekar.birthdaygreetingservice.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -11,6 +13,7 @@ import java.util.UUID;
 
 @Service
 public class UserServiceImp implements UserService{
+    private Logger log = LoggerFactory.getLogger(UserServiceImp.class);
 
     private UserRepository userRepository = null;
 
