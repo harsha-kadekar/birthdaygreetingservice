@@ -51,7 +51,21 @@ public class UserServiceImp implements UserService{
         return userRepository.getAllUsers();
     }
 
-    public void updateUser(User user) {
+    public User updateUser(User user) {
+        User existingUserByEmail = findUserByEmail(user.getEmail());
+        User existingUserById = findUserById(user.getUserId());
+
+        if(existingUserById == null) {
+            throw new ResourceDoesNotExistException(String.format("User with userId %s does not exists", user.getUserId().toString()));
+        }
+
+        if(!existingUserById.getEmail().equalsIgnoreCase(user.getEmail()) && existingUserByEmail != null) {
+            throw new ResourceAlreadyExistException(String.format("User with email %s already exists", user.getEmail()));
+        }
+
+        userRepository.updateUsers(Arrays.asList(user));
+
+        return user;
 
     }
 
