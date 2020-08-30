@@ -228,4 +228,36 @@ public class FileUserRepositoryTest {
         assertThat(actualUsers, not(hasItem(harshaUser)));
 
     }
+
+    @Test
+    public void testUpdateUsers() {
+        User existingUser = new User.Builder().
+                withFirstName("Harsha").
+                withLastName("Kadekar").
+                withEmail("harsha.kadekar@gmail.com").
+                withPhoneNumber("0125439876").
+                withUserId(UUID.fromString("2ea330f4-9ca8-11ea-bb37-0242ac130002")).
+                withBirthDate(LocalDate.of(1988, 9, 7)).
+                build();
+        User updatedUser = new User.Builder().
+                withFirstName("Harsha").
+                withLastName("Kadekar").
+                withEmail("harsha.kadekar@gmail.com").
+                withPhoneNumber("9876543210").
+                withUserId(UUID.fromString("2ea330f4-9ca8-11ea-bb37-0242ac130002")).
+                withBirthDate(LocalDate.of(1988, 9, 7)).
+                build();
+
+        FileUserRepository fileUserRepository = FileUserRepository.getInstance();
+
+        List<User> users = fileUserRepository.getAllUsers();
+        assertThat(users, hasItem(existingUser));
+        assertThat(users, not(hasItem(updatedUser)));
+
+        fileUserRepository.updateUsers(Arrays.asList(updatedUser));
+        users = fileUserRepository.getAllUsers();
+        assertThat(users, not(hasItem(existingUser)));
+        assertThat(users, hasItem(updatedUser));
+
+    }
 }

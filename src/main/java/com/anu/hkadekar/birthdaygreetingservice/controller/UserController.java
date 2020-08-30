@@ -1,6 +1,8 @@
 package com.anu.hkadekar.birthdaygreetingservice.controller;
 
 import com.anu.hkadekar.birthdaygreetingservice.model.User;
+import com.anu.hkadekar.birthdaygreetingservice.service.ResourceAlreadyExistException;
+import com.anu.hkadekar.birthdaygreetingservice.service.ResourceDoesNotExistException;
 import com.anu.hkadekar.birthdaygreetingservice.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +28,18 @@ public class UserController {
     }
 
     @PostMapping(value = "/user")
-    public User addUser(@RequestBody User user) {
-        return userService.addUser(user);
+    public User addUser(@RequestBody User user) throws ResponseStatusException {
+        try {
+            if (user.getUserId() != null) {
+                return userService.updateUser(user);
+            } else {
+                return userService.addUser(user);
+            }
+        } catch (ResourceAlreadyExistException exp) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, exp.getMessage());
+        } catch (ResourceDoesNotExistException exp) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, exp.getMessage());
+        }
     }
 
     private UUID getUserId(String userInfo) {

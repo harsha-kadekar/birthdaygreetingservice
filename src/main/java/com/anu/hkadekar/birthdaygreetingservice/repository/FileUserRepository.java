@@ -7,10 +7,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.StampedLock;
@@ -121,7 +118,9 @@ public class FileUserRepository implements UserRepository {
 
     @Override
     public void updateUsers(List<User> users) {
-
+        List<User> toBeUpdatedUsers = getUsersById(Arrays.asList(users.get(0).getUserId()));
+        removeUsers(toBeUpdatedUsers);
+        addUsers(users);
     }
 
 

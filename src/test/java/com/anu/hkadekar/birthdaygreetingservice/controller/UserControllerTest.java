@@ -98,6 +98,28 @@ public class UserControllerTest {
     }
 
     @Test
+    public void testAddUserExistingEmailFailure() throws Exception {
+
+        String jsonInputUser = "{\"firstName\":\"harsha\",\"lastName\":\"kadekar\",\"email\":\"abc@abc.com\",\"phoneNumber\":\"1234567890\",\"birthDate\":\"1988-09-07\"}";
+
+        User harshaUserWithoutUUID = new User.Builder().withFirstName("harsha").withLastName("kadekar").withEmail("abc@abc.com").withPhoneNumber("1234567890").withBirthDate(LocalDate.of(1988, 9, 7)).build();
+
+        User anotherUserExisting = new User.Builder().withFirstName("another").withLastName("user").withEmail("abc@abc.com").withPhoneNumber("9876543210").withBirthDate(LocalDate.of(1988, 9, 7)).withUserId(UUID.fromString("2ea330f4-9ca8-11ea-cc37-0262ac130002")).build();
+
+        doReturn(anotherUserExisting).when(userService).findUserByEmail("abc@abc.com");
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .post("/v1/user")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonInputUser))
+                .andExpect(status().is4xxClientError())
+                .andExpect(status().reason("User with email abc@abc.com already exists" ));
+
+        verify(userService).addUser(harshaUserWithoutUUID);
+
+    }
+
+    @Test
     public void testGetUserById() throws Exception {
         User harshaUser = new User.Builder()
                 .withUserId(UUID.fromString("2ea330f4-9ca8-11ea-bb37-0242ac130002"))
@@ -238,6 +260,68 @@ public class UserControllerTest {
 
         verify(userService).findUserById(UUID.fromString("2ea330f4-9ca8-11ea-bb37-0242ac130002"));
         verify(userService, never()).removeUser(Mockito.any());
+    }
+
+    @Test
+    public void testUpdateExistingUser() throws Exception {
+
+        String jsonInputUser = "{\"firstName\":\"harsha\",\"lastName\":\"kadekar\",\"email\":\"abc@abc.com\",\"phoneNumber\":\"1234567890\",\"birthDate\":\"1988-09-07\",\"userId\":\"2ea330f4-9ca8-11ea-bb37-0242ac130002\"}";
+
+        User harshaUserWithUUID = new User.Builder().withFirstName("harsha").withLastName("kadekar").withEmail("abc@abc.com").withPhoneNumber("1234567890").withBirthDate(LocalDate.of(1988, 9, 7)).withUserId(UUID.fromString("2ea330f4-9ca8-11ea-bb37-0242ac130002")).build();
+
+        doReturn(harshaUserWithUUID).when(userService).updateUser(harshaUserWithUUID);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .post("/v1/user")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonInputUser))
+                .andExpect(jsonPath("$.firstName", is("harsha")))
+                .andExpect(jsonPath("$.lastName", is("kadekar")))
+                .andExpect(jsonPath("$.email", is("abc@abc.com")))
+                .andExpect(jsonPath("$.phoneNumber", is("1234567890")))
+                .andExpect(jsonPath("$.birthDate", is("1988-09-07")))
+                .andExpect(jsonPath("$.userId", is("2ea330f4-9ca8-11ea-bb37-0242ac130002")));
+
+        verify(userService).updateUser(harshaUserWithUUID);
+
+    }
+
+    @Test
+    public void testFailUpdateNotExistingUser() throws Exception {
+        String jsonInputUser = "{\"firstName\":\"harsha\",\"lastName\":\"kadekar\",\"email\":\"abc@abc.com\",\"phoneNumber\":\"1234567890\",\"birthDate\":\"1988-09-07\",\"userId\":\"2ea330f4-9ca8-11ea-bb37-0242ac130002\"}";
+        User harshaUserWithUUID = new User.Builder().withFirstName("harsha").withLastName("kadekar").withEmail("abc@abc.com").withPhoneNumber("1234567890").withBirthDate(LocalDate.of(1988, 9, 7)).withUserId(UUID.fromString("2ea330f4-9ca8-11ea-bb37-0242ac130002")).build();
+
+        doReturn(null).when(userService).findUserById(UUID.fromString("2ea330f4-9ca8-11ea-bb37-0242ac130002"));
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .post("/v1/user")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonInputUser))
+                .andExpect(status().is4xxClientError())
+                .andExpect(status().reason("User with userId 2ea330f4-9ca8-11ea-bb37-0242ac130002 does not exists"));
+
+        verify(userService).updateUser(harshaUserWithUUID);
+    }
+
+    @Test
+    public void testFailUpdateExistingEmail() throws Exception {
+        String jsonInputUser = "{\"firstName\":\"harsha\",\"lastName\":\"kadekar\",\"email\":\"xyz@abc.com\",\"phoneNumber\":\"1234567890\",\"birthDate\":\"1988-09-07\",\"userId\":\"2ea330f4-9ca8-11ea-bb37-0242ac130002\"}";
+        User harshaUserToUpdate = new User.Builder().withFirstName("harsha").withLastName("kadekar").withEmail("xyz@abc.com").withPhoneNumber("1234567890").withBirthDate(LocalDate.of(1988, 9, 7)).withUserId(UUID.fromString("2ea330f4-9ca8-11ea-bb37-0242ac130002")).build();
+        User harshaUserExisting = new User.Builder().withFirstName("harsha").withLastName("kadekar").withEmail("abc@abc.com").withPhoneNumber("1234567890").withBirthDate(LocalDate.of(1988, 9, 7)).withUserId(UUID.fromString("2ea330f4-9ca8-11ea-bb37-0242ac130002")).build();
+        User anotherUserExisting = new User.Builder().withFirstName("another").withLastName("user").withEmail("xyz@abc.com").withPhoneNumber("9876543210").withBirthDate(LocalDate.of(1988, 9, 7)).withUserId(UUID.fromString("2ea330f4-9ca8-11ea-cc37-0262ac130002")).build();
+
+        doReturn(harshaUserExisting).when(userService).findUserById(UUID.fromString("2ea330f4-9ca8-11ea-bb37-0242ac130002"));
+        doReturn(anotherUserExisting).when(userService).findUserByEmail("xyz@abc.com");
+
+        mockMvc.perform(MockMvcRequestBuilders
+                .post("/v1/user")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonInputUser))
+                .andExpect(status().is4xxClientError())
+                .andExpect(status().reason("User with email xyz@abc.com already exists" ));
+
+        verify(userService).updateUser(harshaUserToUpdate);
+
     }
 
 }

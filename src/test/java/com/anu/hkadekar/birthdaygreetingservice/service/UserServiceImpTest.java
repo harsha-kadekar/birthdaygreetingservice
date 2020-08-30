@@ -17,8 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.*;
 
 @SpringBootTest
 public class UserServiceImpTest {
@@ -34,7 +33,7 @@ public class UserServiceImpTest {
     }
 
     @BeforeEach
-    public void testInitializer() throws Exception{
+    public void testInitializer() throws Exception {
 
         User user = new User.Builder().
                 withFirstName("Harsha").
@@ -211,6 +210,114 @@ public class UserServiceImpTest {
         List<User> users = userServiceImp.getAllUsers();
         assertThat(users, hasItem(user));
         Assertions.assertEquals(1, users.size());
+
+    }
+
+    @Test
+    public void testUpdateUser() {
+        User existingUser = new User.Builder().
+                withFirstName("Harsha").
+                withLastName("Kadekar").
+                withEmail("harsha.kadekar@gmail.com").
+                withPhoneNumber("0125439876").
+                withUserId(UUID.fromString("2ea330f4-9ca8-11ea-bb37-0242ac130002")).
+                withBirthDate(LocalDate.of(1988, 9, 7)).
+                build();
+
+        User updatedUser = new User.Builder().
+                withFirstName("Harsha").
+                withLastName("Kadekar").
+                withEmail("harsha.kadekar@gmail.com").
+                withPhoneNumber("9876543210").
+                withUserId(UUID.fromString("2ea330f4-9ca8-11ea-bb37-0242ac130002")).
+                withBirthDate(LocalDate.of(1988, 9, 7)).
+                build();
+
+        UserServiceImp userServiceImp = new UserServiceImp();
+        List<User> users = userServiceImp.getAllUsers();
+        assertThat(users, hasItem(existingUser));
+        assertThat(users, not(hasItem(updatedUser)));
+        userServiceImp.updateUser(updatedUser);
+        List<User> usersafterUpdate = userServiceImp.getAllUsers();
+        assertThat(usersafterUpdate, hasItem(updatedUser));
+        assertThat(usersafterUpdate, not(hasItem(existingUser)));
+
+    }
+
+    @Test
+    public void testUpdateUserNotExisting() {
+        User existingUser = new User.Builder().
+                withFirstName("Harsha").
+                withLastName("Kadekar").
+                withEmail("harsha.kadekar@gmail.com").
+                withPhoneNumber("0125439876").
+                withUserId(UUID.fromString("2ea330f4-9ca8-11ea-bb37-0242ac130002")).
+                withBirthDate(LocalDate.of(1988, 9, 7)).
+                build();
+
+        User updatedUser = new User.Builder().
+                withFirstName("Harsha").
+                withLastName("Kadekar").
+                withEmail("harsha.kadekar@gmail.com").
+                withPhoneNumber("0125439876").
+                withUserId(UUID.fromString("2ea330f4-9ca8-11ea-cc37-1242ac130002")).
+                withBirthDate(LocalDate.of(1988, 9, 7)).
+                build();
+
+        UserServiceImp userServiceImp = new UserServiceImp();
+        List<User> users = userServiceImp.getAllUsers();
+        assertThat(users, hasItem(existingUser));
+        assertThat(users, not(hasItem(updatedUser)));
+
+        Exception exception = Assertions.assertThrows(ResourceDoesNotExistException.class, () -> {
+            userServiceImp.updateUser(updatedUser);
+        });
+
+        String expectedMessage = "User with userId 2ea330f4-9ca8-11ea-cc37-1242ac130002 does not exists";
+        Assertions.assertEquals(expectedMessage, exception.getMessage());
+    }
+
+    @Test
+    public void testUpdateUserNewEmailAlreadyExisting() {
+        User existingUser = new User.Builder().
+                withFirstName("Harsha").
+                withLastName("Kadekar").
+                withEmail("harsha.kadekar@gmail.com").
+                withPhoneNumber("0125439876").
+                withUserId(UUID.fromString("2ea330f4-9ca8-11ea-bb37-0242ac130002")).
+                withBirthDate(LocalDate.of(1988, 9, 7)).
+                build();
+
+        User addedUser = new User.Builder().
+                withFirstName("Anu").
+                withLastName("Kadekar").
+                withEmail("anu.kadekar@gmail.com").
+                withPhoneNumber("1234567890").
+                withUserId(UUID.fromString("f21191e6-a55b-11ea-bb37-0242ac130002")).
+                withBirthDate(LocalDate.of(1992, 2, 26)).
+                build();
+
+        User updatedUser = new User.Builder().
+                withFirstName("Harsha").
+                withLastName("Kadekar").
+                withEmail("anu.kadekar@gmail.com").
+                withPhoneNumber("0125439876").
+                withUserId(UUID.fromString("2ea330f4-9ca8-11ea-bb37-0242ac130002")).
+                withBirthDate(LocalDate.of(1988, 9, 7)).
+                build();
+
+        UserServiceImp userServiceImp = new UserServiceImp();
+        userServiceImp.addUser(addedUser);
+        List<User> users = userServiceImp.getAllUsers();
+        assertThat(users, hasItems(existingUser, addedUser));
+        assertThat(users, not(hasItem(updatedUser)));
+
+        Exception exception = Assertions.assertThrows(ResourceAlreadyExistException.class, () -> {
+            userServiceImp.updateUser(updatedUser);
+        });
+
+        String expectedMessage = "User with email anu.kadekar@gmail.com already exists";
+        Assertions.assertEquals(expectedMessage, exception.getMessage());
 
     }
 }
